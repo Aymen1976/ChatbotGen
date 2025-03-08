@@ -34,17 +34,26 @@ if st.button("🚀 Générer le document"):
 
             # ✅ Vérification de la réponse
             if response.status_code == 200:
-                pdf_url = response.json().get("document_path")
-                st.success("✅ Document généré avec succès !")
-                st.markdown(f"[📥 Télécharger le document]({pdf_url})", unsafe_allow_html=True)
+                response_data = response.json()
+                st.write(response_data)  # Affiche les données de réponse pour debug
+
+                pdf_url = response_data.get("document_path")
+                if pdf_url:
+                    st.success(f"✅ {format_choice} généré avec succès !")
+                    st.markdown(f"[📥 Télécharger le document]({pdf_url})", unsafe_allow_html=True)
+                else:
+                    st.error("⚠️ Aucun lien de document retourné par l'API.")
             else:
                 st.error(f"❌ Erreur {response.status_code}: {response.text}")
 
+        except requests.exceptions.ConnectionError:
+            st.error("🚨 Impossible de se connecter à l'API. Vérifie que Flask est bien démarré !")
         except requests.exceptions.RequestException as e:
-            st.error(f"🚨 Erreur de connexion à l'API : {e}")
+            st.error(f"🚨 Une erreur s'est produite : {e}")
 
     else:
         st.warning("⚠️ Veuillez remplir tous les champs !")
 
 st.write("---")
 st.write("🚀 **Déployé avec Streamlit**")
+          
