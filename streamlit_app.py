@@ -3,7 +3,7 @@ import requests
 import json
 
 # 🔗 URL de ton API Flask (Change selon ton URL Ngrok ou ton serveur déployé)
-API_URL = "http://localhost:5000/generate"  # Remplace par ton URL Ngrok si nécessaire
+API_URL = "https://1234-5678-abcdef.ngrok-free.app/generate"  # Remplace par ton URL Ngrok si nécessaire
 
 # 🎨 Interface utilisateur
 st.title("📄 Générateur de Documents PDF & DOCX")
@@ -56,4 +56,3 @@ if st.button("🚀 Générer le document"):
 
 st.write("---")
 st.write("🚀 **Déployé avec Streamlit**")
-          
