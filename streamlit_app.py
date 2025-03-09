@@ -1,9 +1,9 @@
 import streamlit as st
-import requests
-import json
-
-# 🔗 URL de ton API Flask (Change selon ton URL Ngrok ou ton serveur déployé)
-API_URL = "https://1234-5678-abcdef.ngrok-free.app/generate"  # Remplace par ton URL Ngrok si nécessaire
+from io import BytesIO
+from datetime import datetime
+from docx import Document
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 # 🎨 Interface utilisateur
 st.title("📄 Générateur de Documents PDF & DOCX")
@@ -11,45 +11,58 @@ st.write("Remplissez les informations ci-dessous pour générer un document.")
 
 # 📝 Formulaire de saisie
 titre = st.text_input("📌 Titre du document", "Mon Document")
-date = st.date_input("📅 Date du document")
+date = st.date_input("📅 Date du document", datetime.today())
 contenu = st.text_area("📝 Contenu", "Écrivez ici le contenu du document...")
 
 # 📌 Choix du format (PDF ou DOCX)
 format_choice = st.selectbox("📄 Format du document", ["PDF", "DOCX"])
 
+# Fonction pour générer un document PDF
+def generate_pdf(titre, date, contenu):
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=letter)
+    
+    pdf.setTitle(titre)
+    pdf.setFont("Helvetica", 12)
+    
+    pdf.drawString(100, 750, f"Titre: {titre}")
+    pdf.drawString(100, 730, f"Date: {date}")
+    text = pdf.beginText(100, 700)
+    
+    for line in contenu.split("\n"):
+        text.textLine(line)
+    
+    pdf.drawText(text)
+    pdf.showPage()
+    pdf.save()
+    
+    buffer.seek(0)
+    return buffer
+
+# Fonction pour générer un document DOCX
+def generate_docx(titre, date, contenu):
+    doc = Document()
+    doc.add_heading(titre, level=1)
+    doc.add_paragraph(f"Date: {date}")
+    doc.add_paragraph(contenu)
+    
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    return buffer
+
 # 🔘 Bouton de génération
 if st.button("🚀 Générer le document"):
     if titre and contenu:
-        # 🛠️ Préparation des données JSON
-        data = {
-            "format": format_choice,
-            "titre": titre,
-            "date": str(date),
-            "contenu": contenu
-        }
+        if format_choice == "PDF":
+            file_buffer = generate_pdf(titre, date, contenu)
+            st.success("✅ PDF généré avec succès !")
+            st.download_button("📥 Télécharger le PDF", file_buffer, file_name="document.pdf", mime="application/pdf")
 
-        try:
-            # 📤 Envoi de la requête à l'API
-            response = requests.post(API_URL, json=data)
-
-            # ✅ Vérification de la réponse
-            if response.status_code == 200:
-                response_data = response.json()
-                st.write(response_data)  # Affiche les données de réponse pour debug
-
-                pdf_url = response_data.get("document_path")
-                if pdf_url:
-                    st.success(f"✅ {format_choice} généré avec succès !")
-                    st.markdown(f"[📥 Télécharger le document]({pdf_url})", unsafe_allow_html=True)
-                else:
-                    st.error("⚠️ Aucun lien de document retourné par l'API.")
-            else:
-                st.error(f"❌ Erreur {response.status_code}: {response.text}")
-
-        except requests.exceptions.ConnectionError:
-            st.error("🚨 Impossible de se connecter à l'API. Vérifie que Flask est bien démarré !")
-        except requests.exceptions.RequestException as e:
-            st.error(f"🚨 Une erreur s'est produite : {e}")
+        elif format_choice == "DOCX":
+            file_buffer = generate_docx(titre, date, contenu)
+            st.success("✅ DOCX généré avec succès !")
+            st.download_button("📥 Télécharger le DOCX", file_buffer, file_name="document.docx", mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
     else:
         st.warning("⚠️ Veuillez remplir tous les champs !")
