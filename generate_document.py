@@ -9,15 +9,14 @@ def generate_docx(titre, date, contenu, output_path):
     document = Document()
     document.add_heading(titre, level=0)
     document.add_paragraph(f"Date: {date}")
-    document.add_paragraph("")  # Espace vide
+    document.add_paragraph("")
     document.add_paragraph(contenu)
     document.save(output_path)
     print(f"DOCX enregistré à : {output_path}")
 
 def generate_pdf(titre, date, contenu, output_path):
     c = canvas.Canvas(output_path, pagesize=letter)
-    width, height = letter
-    textobject = c.beginText(50, height - 50)
+    textobject = c.beginText(50, 750)
     textobject.setFont("Helvetica", 12)
     textobject.textLine(titre)
     textobject.textLine(f"Date: {date}")
@@ -30,24 +29,31 @@ def generate_pdf(titre, date, contenu, output_path):
     print(f"PDF enregistré à : {output_path}")
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python generate_document.py <fichier_json>")
+    if len(sys.argv) < 3:
+        print("Usage: python generate_document.py <fichier_json> <chemin_sortie>")
         sys.exit(1)
+    
     input_json_file = sys.argv[1]
-    with open(input_json_file, 'r', encoding='utf-8-sig') as f:
-        data = json.load(f)
-
+    output_folder = sys.argv[2]
+    os.makedirs(output_folder, exist_ok=True)
+    
+    try:
+        with open(input_json_file, 'r', encoding='utf-8-sig') as f:
+            data = json.load(f)
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"Erreur de lecture JSON: {e}")
+        sys.exit(1)
+    
     format_choice = data.get("format", "DOCX").upper()
     titre = data.get("titre", "Document généré par Chatbot")
     date = data.get("date", "Date inconnue")
     contenu = data.get("contenu", "")
 
-    desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    output_file = os.path.join(output_folder, f"document_chatbot.{format_choice.lower()}")
+    
     if format_choice == "PDF":
-        output_file = os.path.join(desktop_path, "document_chatbot.pdf")
         generate_pdf(titre, date, contenu, output_file)
     else:
-        output_file = os.path.join(desktop_path, "document_chatbot.docx")
         generate_docx(titre, date, contenu, output_file)
 
 if __name__ == "__main__":
