@@ -1,11 +1,10 @@
-import streamlit as st
+ import streamlit as st
 from reportlab.pdfgen import canvas
 import io
 
 def generate_pdf(titre, date, contenu):
     if not titre or not date or not contenu:
         return None
-    
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer)
     textobject = c.beginText(100, 750)
@@ -30,6 +29,7 @@ contenu = st.text_area("Contenu", "Ceci est un test")
 if st.button("Générer PDF"):
     pdf_file = generate_pdf(titre, date, contenu)
     if pdf_file:
-        st.download_button(label="Télécharger le PDF", data=pdf_file, file_name="document_chatbot.pdf", mime="application/pdf")
+        st.download_button("Télécharger le PDF", data=pdf_file, file_name="document_chatbot.pdf", mime="application/pdf")
     else:
         st.error("Veuillez remplir tous les champs avant de générer le PDF.")
+
