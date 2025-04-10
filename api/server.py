@@ -31,7 +31,6 @@ def generate_pdf(titre, date, contenu, output_path):
     c.drawString(margin, y, f"Date: {date}")
     y -= 2 * line_height
 
-    # Découper automatiquement le texte long
     lines = simpleSplit(contenu, "Helvetica", 12, width - 2 * margin)
     for line in lines:
         if y < margin + line_height:
@@ -85,6 +84,6 @@ def telecharger_pdf(nom_fichier):
 def telecharger_docx(nom_fichier):
     return send_from_directory(DOCX_FOLDER, nom_fichier, as_attachment=True)
 
+# Lancement pour Render avec Gunicorn
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=10000)
-
+    app.run(host="0.0.0.0", port=10000)
