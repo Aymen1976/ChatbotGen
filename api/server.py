@@ -12,9 +12,12 @@ OUTPUT_FOLDER = "output"
 PDF_FOLDER = os.path.join(OUTPUT_FOLDER, "pdf")
 DOCX_FOLDER = os.path.join(OUTPUT_FOLDER, "docx")
 
-# Création des dossiers s'ils n'existent pas
 os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs(DOCX_FOLDER, exist_ok=True)
+
+@app.route("/")
+def home():
+    return "Bienvenue sur mon API ChatbotGen 🚀. Utilise /generer pour créer des documents."
 
 def generate_pdf(titre, date, contenu, output_path):
     c = canvas.Canvas(output_path, pagesize=A4)
@@ -84,6 +87,5 @@ def telecharger_pdf(nom_fichier):
 def telecharger_docx(nom_fichier):
     return send_from_directory(DOCX_FOLDER, nom_fichier, as_attachment=True)
 
-# Lancement pour Render avec Gunicorn
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)
