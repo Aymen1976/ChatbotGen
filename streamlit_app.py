@@ -2,8 +2,7 @@ import streamlit as st
 import requests
 
 # ✅ Lien vers ton API Flask via ngrok (nouvelle URL)
-API_URL = "https://fb2a-195-135-2-115.ngrok-free.app/generer"
-
+API_URL = "https://chatbotgen-api.onrender.com/generer"
 st.title("📄 Générateur de Documents PDF & DOCX")
 st.write("Remplissez les informations ci-dessous pour générer un document.")
 
