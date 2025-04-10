@@ -1,9 +1,8 @@
 import streamlit as st
 import requests
 
-# ✅ Lien vers l'API locale Flask
-API_URL = "https://a684-195-135-2-115.ngrok-free.app/generer"
-
+# ✅ Lien vers ton API Flask via ngrok (nouvelle URL)
+API_URL = "https://fb2a-195-135-2-115.ngrok-free.app/generer"
 
 st.title("📄 Générateur de Documents PDF & DOCX")
 st.write("Remplissez les informations ci-dessous pour générer un document.")
@@ -24,7 +23,7 @@ if st.button("🚀 Générer le document"):
         }
 
         try:
-            # Envoi de la requête POST vers l'API
+            # Envoi de la requête POST vers Flask
             response = requests.post(API_URL, json=data)
 
             if response.status_code == 200:
@@ -35,8 +34,8 @@ if st.button("🚀 Générer le document"):
                 if not chemin_telechargement:
                     st.error("❌ Aucun lien de téléchargement retourné par l'API.")
                 else:
-                    # Récupération du document généré via un GET
-                    document_url = "http://localhost:5000" + chemin_telechargement
+                    # Correction IMPORTANTE → Télécharger depuis ngrok
+                    document_url = API_URL.replace("/generer", "") + chemin_telechargement
                     fichier = requests.get(document_url)
 
                     if fichier.status_code == 200:
@@ -59,4 +58,4 @@ if st.button("🚀 Générer le document"):
         st.warning("⚠️ Veuillez remplir tous les champs avant de générer le document.")
 
 st.markdown("---")
-st.markdown("🖥️ Application connectée à une API Flask locale.")
+st.markdown("🖥️ Application connectée à une API Flask exposée avec ngrok.")
