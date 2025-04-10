@@ -15,10 +15,6 @@ DOCX_FOLDER = os.path.join(OUTPUT_FOLDER, "docx")
 os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs(DOCX_FOLDER, exist_ok=True)
 
-@app.route("/")
-def home():
-    return "Bienvenue sur mon API ChatbotGen 🚀. Utilise /generer pour créer des documents."
-
 def generate_pdf(titre, date, contenu, output_path):
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
@@ -50,6 +46,10 @@ def generate_docx(titre, date, contenu, output_path):
     doc.add_paragraph(f"Date : {date}")
     doc.add_paragraph(contenu)
     doc.save(output_path)
+
+@app.route("/")
+def accueil():
+    return "Bienvenue sur mon API ChatbotGen 🚀. Utilise /generer pour créer des documents."
 
 @app.route("/generer", methods=["POST"])
 def generer_documents():
