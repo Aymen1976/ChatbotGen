@@ -2,42 +2,39 @@ from flask import Flask, request, jsonify, send_from_directory
 from datetime import datetime
 import os
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib.units import cm
-from reportlab.lib.utils import simpleSplit
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from docx import Document
 
 app = Flask(__name__, static_url_path='/static')
 
-# On utilise le dossier "static" pour stocker les fichiers générés
+# Utilisons un dossier "static" pour stocker les fichiers générés
 STATIC_FOLDER = "static"
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
-def generate_pdf(titre, date, contenu, output_path):
-    c = canvas.Canvas(output_path, pagesize=A4)
-    width, height = A4
-    margin = 2 * cm
-    line_height = 14
-    y = height - margin
+# Fonction pour générer le PDF avec Platypus
+def generate_pdf_platypus(titre, date, contenu, output_path):
+    # Créer le document avec des marges standard
+    doc = SimpleDocTemplate(output_path, pagesize=A4,
+                            rightMargin=72, leftMargin=72,
+                            topMargin=72, bottomMargin=72)
+    styles = getSampleStyleSheet()
+    story = []
 
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(margin, y, titre)
-    y -= 2 * line_height
+    # Ajouter le titre avec le style "Title"
+    story.append(Paragraph(titre, styles['Title']))
+    story.append(Spacer(1, 12))  # Espace de 12 points
 
-    c.setFont("Helvetica", 12)
-    c.drawString(margin, y, f"Date: {date}")
-    y -= 2 * line_height
+    # Ajouter la date avec un style de sous-titre
+    story.append(Paragraph(f"Date: {date}", styles['Heading2']))
+    story.append(Spacer(1, 12))
 
-    lines = simpleSplit(contenu, "Helvetica", 12, width - 2 * margin)
-    for line in lines:
-        if y < margin + line_height:
-            c.showPage()
-            y = height - margin
-            c.setFont("Helvetica", 12)
-        c.drawString(margin, y, line)
-        y -= line_height
-    c.save()
+    # Ajouter le contenu avec le style "BodyText"
+    story.append(Paragraph(contenu, styles['BodyText']))
 
+    doc.build(story)
+
+# Fonction pour générer le DOCX (comme avant)
 def generate_docx(titre, date, contenu, output_path):
     doc = Document()
     doc.add_heading(titre, level=1)
@@ -56,23 +53,23 @@ def generer_documents():
         titre = data.get("titre", "Document sans titre")
         contenu = data.get("contenu", "")
         date = data.get("date", datetime.now().strftime("%Y-%m-%d"))
-        
+
+        # Vérifier que le contenu n'est pas vide
         if not contenu.strip():
             return jsonify({"error": "Le champ 'contenu' est requis"}), 400
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        # Remplacer les espaces par des underscores dans le titre pour le nom du fichier
         nom_pdf = f"{titre.replace(' ', '_')}_{timestamp}.pdf"
         nom_docx = f"{titre.replace(' ', '_')}_{timestamp}.docx"
-
-        # Les fichiers seront sauvegardés dans le dossier "static"
         chemin_pdf = os.path.join(STATIC_FOLDER, nom_pdf)
         chemin_docx = os.path.join(STATIC_FOLDER, nom_docx)
 
-        generate_pdf(titre, date, contenu, chemin_pdf)
+        # Générer le PDF avec Platypus
+        generate_pdf_platypus(titre, date, contenu, chemin_pdf)
+        # Générer le DOCX
         generate_docx(titre, date, contenu, chemin_docx)
 
-        base_url = request.host_url.rstrip("/")  # ex: https://chatbotgen-api.onrender.com
+        base_url = request.host_url.rstrip("/")  # Ex: "https://chatbotgen-api.onrender.com"
 
         return jsonify({
             "message": "✅ Fichiers générés avec succès",
@@ -83,12 +80,11 @@ def generer_documents():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Cette route force le téléchargement du PDF
 @app.route("/telecharger/pdf/<nom_fichier>")
 def telecharger_pdf(nom_fichier):
+    # Ceci force le téléchargement du fichier
     return send_from_directory(STATIC_FOLDER, nom_fichier, as_attachment=True)
 
-# Cette route force le téléchargement du DOCX
 @app.route("/telecharger/docx/<nom_fichier>")
 def telecharger_docx(nom_fichier):
     return send_from_directory(STATIC_FOLDER, nom_fichier, as_attachment=True)
