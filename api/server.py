@@ -13,11 +13,9 @@ OUTPUT_FOLDER = "output"
 PDF_FOLDER = os.path.join(OUTPUT_FOLDER, "pdf")
 DOCX_FOLDER = os.path.join(OUTPUT_FOLDER, "docx")
 
-# Créer les dossiers
 os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs(DOCX_FOLDER, exist_ok=True)
 
-# Générer PDF
 def generate_pdf(titre, date, contenu, output_path):
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
@@ -41,10 +39,8 @@ def generate_pdf(titre, date, contenu, output_path):
             c.setFont("Helvetica", 12)
         c.drawString(margin, y, line)
         y -= line_height
-
     c.save()
 
-# Générer DOCX
 def generate_docx(titre, date, contenu, output_path):
     doc = Document()
     doc.add_heading(titre, level=1)
@@ -76,13 +72,13 @@ def generer_documents():
         generate_pdf(titre, date, contenu, chemin_pdf)
         generate_docx(titre, date, contenu, chemin_docx)
 
-        # Les vrais liens pour téléchargement direct
-        url_base = "https://chatbotgen-api.onrender.com"
+        # Construction des liens complets
+        base_url = request.host_url.rstrip("/")
 
         return jsonify({
-            "message": "✅ Le document a été généré avec succès",
-            "pdf": f"{url_base}/telecharger/pdf/{nom_pdf}",
-            "docx": f"{url_base}/telecharger/docx/{nom_docx}"
+            "message": "✅ Fichiers générés avec succès",
+            "pdf": f"{base_url}/telecharger/pdf/{nom_pdf}",
+            "docx": f"{base_url}/telecharger/docx/{nom_docx}"
         })
 
     except Exception as e:
