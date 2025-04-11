@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, url_for
+from flask import Flask, request, jsonify, send_from_directory
 from datetime import datetime
 import os
 from reportlab.lib.pagesizes import A4
@@ -66,13 +66,13 @@ def generer_documents():
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         nom_pdf = f"{titre.replace(' ', '_')}_{timestamp}.pdf"
         nom_docx = f"{titre.replace(' ', '_')}_{timestamp}.docx"
-
         chemin_pdf = os.path.join(PDF_FOLDER, nom_pdf)
         chemin_docx = os.path.join(DOCX_FOLDER, nom_docx)
 
         generate_pdf(titre, date, contenu, chemin_pdf)
         generate_docx(titre, date, contenu, chemin_docx)
 
+        # Construction des liens complets
         base_url = request.host_url.rstrip("/")
 
         return jsonify({
@@ -80,6 +80,7 @@ def generer_documents():
             "pdf": f"{base_url}/telecharger/pdf/{nom_pdf}",
             "docx": f"{base_url}/telecharger/docx/{nom_docx}"
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
