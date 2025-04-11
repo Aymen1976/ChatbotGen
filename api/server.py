@@ -7,9 +7,9 @@ from reportlab.lib.units import cm
 from reportlab.lib.utils import simpleSplit
 from docx import Document
 
-# Configuration
 app = Flask(__name__, static_url_path='/static')
 
+# On utilise le dossier "static" pour stocker les fichiers générés
 STATIC_FOLDER = "static"
 os.makedirs(STATIC_FOLDER, exist_ok=True)
 
@@ -47,40 +47,51 @@ def generate_docx(titre, date, contenu, output_path):
 
 @app.route("/")
 def accueil():
-    return "Bienvenue sur mon API ChatbotGen 🚀. Utilise /generer pour créer tes fichiers PDF et DOCX."
+    return "Bienvenue sur mon API ChatbotGen 🚀. Utilise /generer pour créer des documents."
 
 @app.route("/generer", methods=["POST"])
-def generer():
+def generer_documents():
     try:
         data = request.get_json()
-        titre = data.get("titre", "Document")
+        titre = data.get("titre", "Document sans titre")
         contenu = data.get("contenu", "")
         date = data.get("date", datetime.now().strftime("%Y-%m-%d"))
-
+        
         if not contenu.strip():
-            return jsonify({"error": "Le champ 'contenu' est obligatoire."}), 400
+            return jsonify({"error": "Le champ 'contenu' est requis"}), 400
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Remplacer les espaces par des underscores dans le titre pour le nom du fichier
         nom_pdf = f"{titre.replace(' ', '_')}_{timestamp}.pdf"
         nom_docx = f"{titre.replace(' ', '_')}_{timestamp}.docx"
 
+        # Les fichiers seront sauvegardés dans le dossier "static"
         chemin_pdf = os.path.join(STATIC_FOLDER, nom_pdf)
         chemin_docx = os.path.join(STATIC_FOLDER, nom_docx)
 
         generate_pdf(titre, date, contenu, chemin_pdf)
         generate_docx(titre, date, contenu, chemin_docx)
 
-        base_url = request.host_url.rstrip("/")
+        base_url = request.host_url.rstrip("/")  # ex: https://chatbotgen-api.onrender.com
 
         return jsonify({
             "message": "✅ Fichiers générés avec succès",
-            "pdf": f"{base_url}/static/{nom_pdf}",
-            "docx": f"{base_url}/static/{nom_docx}"
+            "pdf": f"{base_url}/telecharger/pdf/{nom_pdf}",
+            "docx": f"{base_url}/telecharger/docx/{nom_docx}"
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Cette route force le téléchargement du PDF
+@app.route("/telecharger/pdf/<nom_fichier>")
+def telecharger_pdf(nom_fichier):
+    return send_from_directory(STATIC_FOLDER, nom_fichier, as_attachment=True)
+
+# Cette route force le téléchargement du DOCX
+@app.route("/telecharger/docx/<nom_fichier>")
+def telecharger_docx(nom_fichier):
+    return send_from_directory(STATIC_FOLDER, nom_fichier, as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
