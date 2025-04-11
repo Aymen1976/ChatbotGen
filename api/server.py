@@ -8,10 +8,15 @@ from reportlab.lib.utils import simpleSplit
 from docx import Document
 
 app = Flask(__name__)
+
 OUTPUT_FOLDER = "output"
 PDF_FOLDER = os.path.join(OUTPUT_FOLDER, "pdf")
 DOCX_FOLDER = os.path.join(OUTPUT_FOLDER, "docx")
 
+# URL de ton site Render
+BASE_URL = "https://chatbotgen-api.onrender.com"
+
+# Créer les dossiers s'ils n'existent pas
 os.makedirs(PDF_FOLDER, exist_ok=True)
 os.makedirs(DOCX_FOLDER, exist_ok=True)
 
@@ -73,8 +78,8 @@ def generer_documents():
 
         return jsonify({
             "message": "✅ Fichiers générés avec succès",
-            "pdf": f"/telecharger/pdf/{nom_pdf}",
-            "docx": f"/telecharger/docx/{nom_docx}"
+            "pdf": f"{BASE_URL}/telecharger/pdf/{nom_pdf}",
+            "docx": f"{BASE_URL}/telecharger/docx/{nom_docx}"
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -89,3 +94,4 @@ def telecharger_docx(nom_fichier):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
